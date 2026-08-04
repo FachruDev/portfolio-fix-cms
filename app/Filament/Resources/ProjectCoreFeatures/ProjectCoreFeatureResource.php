@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -32,6 +33,7 @@ class ProjectCoreFeatureResource extends Resource
     {
         return $schema->columns(2)->components([
             Select::make('project_id')->relationship('project', 'title')->searchable()->preload()->required(),
+            TextInput::make('order_no')->numeric()->default(0)->required(),
             Textarea::make('description')->required()->rows(4)->columnSpanFull(),
         ]);
     }
@@ -41,8 +43,9 @@ class ProjectCoreFeatureResource extends Resource
         return $table->columns([
             TextColumn::make('project.title')->searchable()->sortable(),
             TextColumn::make('description')->searchable()->limit(60),
+            TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([])->recordActions([
+        ])->defaultSort('order_no')->filters([])->recordActions([
             EditAction::make(),
             DeleteAction::make(),
         ])->toolbarActions([

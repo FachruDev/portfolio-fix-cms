@@ -47,7 +47,7 @@ class AboutPageSectionItemResource extends Resource
             TextColumn::make('title')->searchable()->sortable(),
             TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([])->recordActions([
+        ])->defaultSort('order_no')->filters([])->recordActions([
             EditAction::make(),
             DeleteAction::make(),
         ])->toolbarActions([

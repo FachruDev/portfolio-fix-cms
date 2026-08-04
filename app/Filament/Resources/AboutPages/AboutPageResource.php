@@ -18,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class AboutPageResource extends Resource
@@ -34,8 +35,12 @@ class AboutPageResource extends Resource
     {
         return $schema->columns(2)->components([
             TextInput::make('title')->required()->maxLength(255),
-            FileUpload::make('photo')->image()->disk('public')->directory('about-page'),
+            FileUpload::make('photo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('about-page'),
+            TextInput::make('photo_alt')->maxLength(255),
             Textarea::make('subtitle')->rows(3)->columnSpanFull(),
+            TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
+            Textarea::make('meta_description')->rows(3)->columnSpanFull(),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
         ]);
     }
 
@@ -57,7 +62,17 @@ class AboutPageResource extends Resource
 
     public static function canCreate(): bool
     {
-        return AboutPage::query()->doesntExist();
+        return parent::canCreate() && AboutPage::query()->doesntExist();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 
     public static function getPages(): array

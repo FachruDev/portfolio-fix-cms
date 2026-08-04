@@ -36,7 +36,9 @@ class ProjectDesignHighlightResource extends Resource
         return $schema->columns(2)->components([
             Select::make('project_id')->relationship('project', 'title')->searchable()->preload()->required(),
             TextInput::make('title')->required()->maxLength(255),
-            FileUpload::make('photo')->image()->disk('public')->directory('projects/design-highlights'),
+            FileUpload::make('photo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('projects/design-highlights'),
+            TextInput::make('photo_alt')->maxLength(255),
+            TextInput::make('order_no')->numeric()->default(0)->required(),
             Textarea::make('subtitle')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -47,8 +49,9 @@ class ProjectDesignHighlightResource extends Resource
             ImageColumn::make('photo')->disk('public'),
             TextColumn::make('project.title')->searchable()->sortable(),
             TextColumn::make('title')->searchable()->sortable(),
+            TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([])->recordActions([
+        ])->defaultSort('order_no')->filters([])->recordActions([
             EditAction::make(),
             DeleteAction::make(),
         ])->toolbarActions([

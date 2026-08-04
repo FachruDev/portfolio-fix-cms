@@ -32,6 +32,7 @@ class HobbySectionResource extends Resource
     {
         return $schema->columns(2)->components([
             TextInput::make('title')->required()->maxLength(255),
+            TextInput::make('order_no')->numeric()->default(0)->required(),
             Textarea::make('subtitle')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -40,8 +41,9 @@ class HobbySectionResource extends Resource
     {
         return $table->columns([
             TextColumn::make('title')->searchable()->sortable(),
+            TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([])->recordActions([
+        ])->defaultSort('order_no')->filters([])->recordActions([
             EditAction::make(),
             DeleteAction::make(),
         ])->toolbarActions([

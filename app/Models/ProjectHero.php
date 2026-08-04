@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FlushesPortfolioContentCache;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['title', 'subtitle'])]
+#[Fillable(['title', 'subtitle', 'meta_title', 'meta_description', 'og_image'])]
 class ProjectHero extends Model
 {
+    use FlushesPortfolioContentCache;
+
     protected $table = 'project_hero';
 }

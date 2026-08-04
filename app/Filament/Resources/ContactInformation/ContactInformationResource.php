@@ -10,6 +10,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -17,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class ContactInformationResource extends Resource
@@ -34,7 +36,11 @@ class ContactInformationResource extends Resource
         return $schema->columns(2)->components([
             TextInput::make('location')->maxLength(255),
             TextInput::make('email')->email()->maxLength(255),
-            FileUpload::make('image')->image()->disk('public')->directory('contact'),
+            FileUpload::make('image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('contact'),
+            TextInput::make('image_alt')->maxLength(255),
+            TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
+            Textarea::make('meta_description')->rows(3)->columnSpanFull(),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
         ]);
     }
 
@@ -57,7 +63,17 @@ class ContactInformationResource extends Resource
 
     public static function canCreate(): bool
     {
-        return ContactInformation::query()->doesntExist();
+        return parent::canCreate() && ContactInformation::query()->doesntExist();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 
     public static function getPages(): array

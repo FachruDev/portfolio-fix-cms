@@ -9,6 +9,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -40,7 +42,12 @@ class NoteResource extends Resource
             Select::make('notes_category_id')->relationship('category', 'title')->searchable()->preload(),
             TextInput::make('title')->required()->live(onBlur: true)->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('slug', Str::slug($state ?? '')))->maxLength(255),
             TextInput::make('slug')->required()->maxLength(255)->unique(ignoreRecord: true),
+            TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
+            Textarea::make('meta_description')->rows(3)->columnSpanFull(),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
             Toggle::make('is_active')->default(true)->required(),
+            Toggle::make('is_featured')->default(false)->required(),
+            DateTimePicker::make('published_at')->seconds(false),
             Textarea::make('subtitle')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -51,7 +58,9 @@ class NoteResource extends Resource
             TextColumn::make('category.title')->searchable()->sortable(),
             TextColumn::make('title')->searchable()->sortable(),
             TextColumn::make('slug')->searchable()->sortable(),
+            IconColumn::make('is_featured')->boolean()->sortable(),
             IconColumn::make('is_active')->boolean()->sortable(),
+            TextColumn::make('published_at')->dateTime()->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
         ])->filters([
             TernaryFilter::make('is_active'),

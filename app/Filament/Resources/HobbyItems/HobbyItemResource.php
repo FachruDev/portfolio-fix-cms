@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -33,7 +34,9 @@ class HobbyItemResource extends Resource
     {
         return $schema->columns(2)->components([
             Select::make('hobby_section_id')->relationship('section', 'title')->searchable()->preload()->required(),
-            FileUpload::make('photo')->image()->disk('public')->directory('hobbies')->required(),
+            FileUpload::make('photo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('hobbies')->required(),
+            TextInput::make('photo_alt')->maxLength(255),
+            TextInput::make('order_no')->numeric()->default(0)->required(),
         ]);
     }
 
@@ -42,8 +45,9 @@ class HobbyItemResource extends Resource
         return $table->columns([
             ImageColumn::make('photo')->disk('public'),
             TextColumn::make('section.title')->searchable()->sortable(),
+            TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([])->recordActions([
+        ])->defaultSort('order_no')->filters([])->recordActions([
             EditAction::make(),
             DeleteAction::make(),
         ])->toolbarActions([

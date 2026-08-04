@@ -35,6 +35,7 @@ class LandingPageAboutItemResource extends Resource
             Select::make('landing_page_about_section_id')->relationship('section', 'title')->searchable()->preload()->required(),
             TextInput::make('title')->required()->maxLength(255),
             TextInput::make('icon')->maxLength(255),
+            TextInput::make('order_no')->numeric()->default(0)->required(),
             Textarea::make('subtitle')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -45,8 +46,9 @@ class LandingPageAboutItemResource extends Resource
             TextColumn::make('section.title')->searchable()->sortable(),
             TextColumn::make('title')->searchable()->sortable(),
             TextColumn::make('icon')->searchable()->sortable(),
+            TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([])->recordActions([
+        ])->defaultSort('order_no')->filters([])->recordActions([
             EditAction::make(),
             DeleteAction::make(),
         ])->toolbarActions([

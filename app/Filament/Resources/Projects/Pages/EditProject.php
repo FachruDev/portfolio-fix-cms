@@ -3,15 +3,17 @@
 namespace App\Filament\Resources\Projects\Pages;
 
 use App\Filament\Resources\Projects\ProjectResource;
-use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ManageRecords;
+use Filament\Actions\DeleteAction;
+use Filament\Resources\Pages\EditRecord;
 
-class ManageProjects extends ManageRecords
+class EditProject extends EditRecord
 {
     protected static string $resource = ProjectResource::class;
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()];
+        return [
+            DeleteAction::make(),
+        ];
     }
 }

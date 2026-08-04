@@ -21,32 +21,38 @@ class PortfolioCmsTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_portfolio_cms_records_can_be_created_with_relationships(): void
+    public function test_portfolio_cms_records_can_be_created_with_best_practice_fields(): void
     {
         $techStack = TechStack::create([
             'name' => 'Laravel',
             'icon' => 'code',
             'is_active' => true,
+            'order_no' => 1,
         ]);
 
         SiteSetting::create([
             'site_title' => 'Portfolio CMS',
             'copyright_text' => 'Copyright 2026',
+            'meta_title' => 'Portfolio',
+            'meta_description' => 'Personal portfolio website.',
         ]);
 
         LandingPage::create([
             'title' => 'Build better products',
             'subtitle' => 'Selected projects and notes.',
+            'meta_title' => 'Home',
         ]);
 
         AboutPage::create([
             'title' => 'About Me',
             'subtitle' => 'Full-stack developer.',
+            'photo_alt' => 'Profile photo',
         ]);
 
         ProjectHero::create([
             'title' => 'Projects',
             'subtitle' => 'Selected work.',
+            'meta_title' => 'Projects',
         ]);
 
         $projectCategory = ProjectCategory::create([
@@ -61,7 +67,12 @@ class PortfolioCmsTest extends TestCase
             'title' => 'Portfolio API',
             'slug' => 'portfolio-api',
             'description_rich' => '<p>CMS managed project.</p>',
+            'thumbnail_alt' => 'Portfolio API thumbnail',
             'is_active' => true,
+            'is_featured' => true,
+            'published_at' => now(),
+            'meta_title' => 'Portfolio API',
+            'meta_description' => 'Read-only portfolio content source.',
         ]);
 
         $project->techStacks()->attach($techStack);
@@ -69,6 +80,7 @@ class PortfolioCmsTest extends TestCase
         ProjectCoreFeature::create([
             'project_id' => $project->id,
             'description' => 'Manage portfolio content from Filament.',
+            'order_no' => 1,
         ]);
 
         $notesCategory = NotesCategory::create([
@@ -83,9 +95,12 @@ class PortfolioCmsTest extends TestCase
             'title' => 'CMS First',
             'slug' => 'cms-first',
             'is_active' => true,
+            'is_featured' => true,
+            'published_at' => now(),
+            'meta_title' => 'CMS First',
         ]);
 
-        ContactMessage::create([
+        $message = ContactMessage::create([
             'name' => 'Visitor',
             'email' => 'visitor@example.com',
             'subject' => 'Hello',
@@ -95,11 +110,14 @@ class PortfolioCmsTest extends TestCase
         ContactInformation::create([
             'location' => 'Jakarta',
             'email' => 'hello@example.com',
+            'image_alt' => 'Contact illustration',
         ]);
 
         $this->assertModelExists($project);
         $this->assertTrue($project->techStacks()->whereKey($techStack->id)->exists());
         $this->assertSame('Web Apps', $project->category->title);
         $this->assertSame('Engineering', Note::query()->firstOrFail()->category?->title);
+        $this->assertSame(ContactMessage::StatusNew, $message->status);
+        $this->assertTrue(Project::query()->published()->whereKey($project->id)->exists());
     }
 }

@@ -50,7 +50,7 @@ class ProjectCategoryResource extends Resource
             TextColumn::make('order_no')->sortable(),
             IconColumn::make('is_active')->boolean()->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([
+        ])->defaultSort('order_no')->filters([
             TernaryFilter::make('is_active'),
         ])->recordActions([
             EditAction::make(),

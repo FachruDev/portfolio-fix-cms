@@ -35,6 +35,7 @@ class TechStackResource extends Resource
         return $schema->columns(2)->components([
             TextInput::make('name')->required()->maxLength(255),
             TextInput::make('icon')->maxLength(255),
+            TextInput::make('order_no')->numeric()->default(0)->required(),
             Toggle::make('is_active')->default(true)->required(),
         ]);
     }
@@ -44,9 +45,10 @@ class TechStackResource extends Resource
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(),
             TextColumn::make('icon')->searchable()->sortable(),
+            TextColumn::make('order_no')->sortable(),
             IconColumn::make('is_active')->boolean()->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-        ])->filters([
+        ])->defaultSort('order_no')->filters([
             TernaryFilter::make('is_active'),
         ])->recordActions([
             EditAction::make(),
