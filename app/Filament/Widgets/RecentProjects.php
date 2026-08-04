@@ -7,7 +7,6 @@ use App\Models\Project;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -15,7 +14,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class RecentProjects extends TableWidget
 {
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = [
+        'default' => 'full',
+        'xl' => 2,
+    ];
 
     protected static ?int $sort = 3;
 
@@ -31,11 +33,10 @@ class RecentProjects extends TableWidget
         return $table
             ->heading('Recent Projects')
             ->description('Project terbaru yang sedang dikelola.')
+            ->paginated([5])
+            ->defaultPaginationPageOption(5)
             ->query(fn (): Builder => Project::query()->with('category')->latest())
             ->columns([
-                ImageColumn::make('thumbnail')
-                    ->disk('public')
-                    ->label('Cover'),
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable()
@@ -43,14 +44,12 @@ class RecentProjects extends TableWidget
                 TextColumn::make('category.title')
                     ->label('Category')
                     ->sortable(),
-                IconColumn::make('is_featured')
-                    ->boolean()
-                    ->label('Featured'),
                 IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active'),
                 TextColumn::make('published_at')
                     ->dateTime()
+                    ->since()
                     ->sortable(),
             ])
             ->headerActions([

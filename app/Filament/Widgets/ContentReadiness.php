@@ -22,7 +22,12 @@ class ContentReadiness extends StatsOverviewWidget
 
     protected static bool $isLazy = false;
 
-    protected int|array|null $columns = 1;
+    protected int|string|array $columnSpan = 'full';
+
+    protected int|array|null $columns = [
+        'default' => 1,
+        'md' => 3,
+    ];
 
     public static function canView(): bool
     {

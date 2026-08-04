@@ -20,7 +20,13 @@ class PortfolioOverview extends StatsOverviewWidget
 
     protected static bool $isLazy = false;
 
-    protected int|array|null $columns = 1;
+    protected int|string|array $columnSpan = 'full';
+
+    protected int|array|null $columns = [
+        'default' => 1,
+        'md' => 2,
+        'xl' => 4,
+    ];
 
     protected function getStats(): array
     {

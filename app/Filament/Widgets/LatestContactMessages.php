@@ -13,7 +13,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LatestContactMessages extends TableWidget
 {
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = [
+        'default' => 'full',
+        'xl' => 2,
+    ];
 
     protected static ?int $sort = 4;
 
@@ -29,6 +32,8 @@ class LatestContactMessages extends TableWidget
         return $table
             ->heading('Latest Contact Messages')
             ->description('Inbox terbaru dari form portfolio.')
+            ->paginated([5])
+            ->defaultPaginationPageOption(5)
             ->query(fn (): Builder => ContactMessage::query()->latest())
             ->columns([
                 TextColumn::make('name')
