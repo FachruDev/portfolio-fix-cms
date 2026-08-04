@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\AboutPage;
 use App\Models\AboutPageSection;
 use App\Models\AboutPageSectionItem;
+use App\Models\CmsMediaAsset;
 use App\Models\ContactInformation;
 use App\Models\ContactMessage;
 use App\Models\ExpertiseSection;
@@ -95,6 +96,7 @@ class AppServiceProvider extends ServiceProvider
             AboutPage::class,
             AboutPageSection::class,
             AboutPageSectionItem::class,
+            CmsMediaAsset::class,
             ContactInformation::class,
             ContactMessage::class,
             ExpertiseSection::class,

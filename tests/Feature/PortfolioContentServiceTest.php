@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CmsMediaAsset;
 use App\Models\Project;
 use App\Models\ProjectCategory;
 use App\Models\SiteSetting;
@@ -32,6 +33,9 @@ class PortfolioContentServiceTest extends TestCase
             'project_category_id' => $category->id,
             'title' => 'Published Project',
             'slug' => 'published-project',
+            'thumbnail' => 'projects/thumbnails/published-project.jpg',
+            'meta_title' => 'Published Project',
+            'meta_description' => 'Published project description.',
             'is_active' => true,
             'is_featured' => true,
             'published_at' => now(),
@@ -47,6 +51,7 @@ class PortfolioContentServiceTest extends TestCase
 
         $techStack = TechStack::create([
             'name' => 'Laravel',
+            'icon' => 'tech/laravel.svg',
             'is_active' => true,
             'order_no' => 1,
         ]);
@@ -55,11 +60,13 @@ class PortfolioContentServiceTest extends TestCase
 
         $content = app(PortfolioContentService::class)->fresh();
 
-        $projects = $content['projects_page']['categories']->first()->projects;
+        $projects = $content['projects_page']['categories'][0]['projects'];
 
         $this->assertCount(1, $projects);
-        $this->assertSame('Published Project', $projects->first()->title);
-        $this->assertTrue($projects->first()->relationLoaded('techStacks'));
+        $this->assertSame('Published Project', $projects[0]['title']);
+        $this->assertSame('http://localhost:8000/storage/projects/thumbnails/published-project.jpg', $projects[0]['thumbnail_url']);
+        $this->assertSame('Laravel', $projects[0]['tech_stacks'][0]['name']);
+        $this->assertSame('http://localhost:8000/storage/tech/laravel.svg', $projects[0]['tech_stacks'][0]['icon_url']);
     }
 
     public function test_cms_model_changes_flush_cached_portfolio_content(): void
@@ -72,5 +79,28 @@ class PortfolioContentServiceTest extends TestCase
         ]);
 
         $this->assertFalse(Cache::has(PortfolioContentService::CacheKey));
+    }
+
+    public function test_media_assets_are_included_in_public_content_payload(): void
+    {
+        CmsMediaAsset::factory()->create([
+            'title' => 'Open Graph Image',
+            'collection' => 'seo',
+            'file_path' => 'media-library/seo/og-image.jpg',
+            'is_active' => true,
+        ]);
+
+        CmsMediaAsset::factory()->create([
+            'title' => 'Draft Asset',
+            'collection' => 'general',
+            'file_path' => 'media-library/general/draft.jpg',
+            'is_active' => false,
+        ]);
+
+        $content = app(PortfolioContentService::class)->fresh();
+
+        $this->assertCount(1, $content['global']['media_assets']);
+        $this->assertSame('Open Graph Image', $content['global']['media_assets'][0]['title']);
+        $this->assertSame('http://localhost:8000/storage/media-library/seo/og-image.jpg', $content['global']['media_assets'][0]['file_path_url']);
     }
 }

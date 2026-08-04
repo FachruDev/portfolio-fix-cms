@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\AboutPage;
 use App\Models\AboutPageSection;
 use App\Models\AboutPageSectionItem;
+use App\Models\CmsMediaAsset;
 use App\Models\ContactInformation;
 use App\Models\ContactMessage;
 use App\Models\ExpertiseSection;
@@ -142,6 +143,7 @@ class PortfolioCmsPermissionSeeder extends Seeder
             AboutPage::class,
             AboutPageSection::class,
             AboutPageSectionItem::class,
+            CmsMediaAsset::class,
             ContactInformation::class,
             ExpertiseSection::class,
             HobbyItem::class,
