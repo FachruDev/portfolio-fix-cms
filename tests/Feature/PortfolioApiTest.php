@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\ProjectCategory;
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PortfolioApiTest extends TestCase
@@ -47,5 +48,20 @@ class PortfolioApiTest extends TestCase
     {
         $this->postJson('/api/v1/portfolio', [])
             ->assertMethodNotAllowed();
+    }
+
+    public function test_public_portfolio_api_is_not_wrapped_by_auth_or_permission_middleware(): void
+    {
+        $route = app('router')->getRoutes()->getByName('api.v1.portfolio.show');
+
+        $this->assertNotNull($route);
+
+        $protectedMiddleware = collect($route->gatherMiddleware())
+            ->map(fn (mixed $middleware): string => (string) $middleware)
+            ->filter(fn (string $middleware): bool => Str::startsWith($middleware, ['auth', 'can', 'role', 'permission'])
+                || Str::contains($middleware, ['Authenticate', 'Authorize', 'RoleMiddleware', 'PermissionMiddleware']))
+            ->values();
+
+        $this->assertSame([], $protectedMiddleware->all());
     }
 }

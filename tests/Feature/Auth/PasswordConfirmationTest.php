@@ -2,20 +2,17 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
 class PasswordConfirmationTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
-    public function test_confirm_password_screen_can_be_rendered(): void
+    public function test_public_password_confirmation_routes_are_closed(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->get(route('password.confirm'));
-
-        $response->assertOk();
+        $this->get('/user/confirm-password')->assertNotFound();
+        $this->post('/user/confirm-password', ['password' => 'password'])->assertNotFound();
+        $this->get('/user/confirmed-password-status')->assertNotFound();
     }
 }

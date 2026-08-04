@@ -2,26 +2,21 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
-    public function test_guests_are_redirected_to_the_login_page(): void
+    public function test_starter_dashboard_route_is_closed(): void
     {
-        $response = $this->get(route('dashboard'));
-        $response->assertRedirect(route('login'));
+        $this->get('/dashboard')->assertNotFound();
     }
 
-    public function test_authenticated_users_can_visit_the_dashboard(): void
+    public function test_filament_dashboard_redirects_guests_to_admin_login(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
-        $response = $this->get(route('dashboard'));
-        $response->assertOk();
+        $this->get('/admin')
+            ->assertRedirect('/admin/login');
     }
 }

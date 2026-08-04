@@ -2,17 +2,15 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
-    public function test_returns_a_successful_response(): void
+    public function test_public_home_route_is_closed(): void
     {
-        $response = $this->get(route('home'));
-
-        $response->assertOk();
+        $this->get('/')->assertNotFound();
     }
 }
