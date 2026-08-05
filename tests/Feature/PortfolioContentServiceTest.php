@@ -58,27 +58,24 @@ class PortfolioContentServiceTest extends TestCase
 
         $publishedProject->techStacks()->attach($techStack);
 
-        $content = app(PortfolioContentService::class)->fresh();
+        $content = app(PortfolioContentService::class)->project($publishedProject->slug);
 
-        $projects = $content['projects_page']['categories'][0]['projects'];
-
-        $this->assertCount(1, $projects);
-        $this->assertSame('Published Project', $projects[0]['title']);
-        $this->assertSame('http://localhost:8000/storage/projects/thumbnails/published-project.jpg', $projects[0]['thumbnail_url']);
-        $this->assertSame('Laravel', $projects[0]['tech_stacks'][0]['name']);
-        $this->assertSame('http://localhost:8000/storage/tech/laravel.svg', $projects[0]['tech_stacks'][0]['icon_url']);
+        $this->assertSame('Published Project', $content['title']);
+        $this->assertSame('http://localhost:8000/storage/projects/thumbnails/published-project.jpg', $content['thumbnail_url']);
+        $this->assertSame('Laravel', $content['tech_stacks'][0]['name']);
+        $this->assertSame('http://localhost:8000/storage/tech/laravel.svg', $content['tech_stacks'][0]['icon_url']);
     }
 
     public function test_cms_model_changes_flush_cached_portfolio_content(): void
     {
-        Cache::put(PortfolioContentService::CacheKey, ['stale' => true], now()->addMinutes(5));
+        Cache::put(PortfolioContentService::CacheVersionKey, 1, now()->addMinutes(5));
 
         TechStack::create([
             'name' => 'Laravel',
             'is_active' => true,
         ]);
 
-        $this->assertFalse(Cache::has(PortfolioContentService::CacheKey));
+        $this->assertSame(2, Cache::get(PortfolioContentService::CacheVersionKey));
     }
 
     public function test_media_assets_are_included_in_public_content_payload(): void
@@ -97,10 +94,10 @@ class PortfolioContentServiceTest extends TestCase
             'is_active' => false,
         ]);
 
-        $content = app(PortfolioContentService::class)->fresh();
+        $content = app(PortfolioContentService::class)->mediaAssets();
 
-        $this->assertCount(1, $content['global']['media_assets']);
-        $this->assertSame('Open Graph Image', $content['global']['media_assets'][0]['title']);
-        $this->assertSame('http://localhost:8000/storage/media-library/seo/og-image.jpg', $content['global']['media_assets'][0]['file_path_url']);
+        $this->assertCount(1, $content['data']);
+        $this->assertSame('Open Graph Image', $content['data'][0]['title']);
+        $this->assertSame('http://localhost:8000/storage/media-library/seo/og-image.jpg', $content['data'][0]['file_path_url']);
     }
 }

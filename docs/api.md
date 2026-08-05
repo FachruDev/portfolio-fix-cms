@@ -1,26 +1,27 @@
 # Portfolio CMS API Documentation
 
-Dokumen ini menjelaskan API publik untuk konsumsi website portfolio, termasuk integrasi Next.js. API ini read-only dan tidak memakai authentication, role, atau permission middleware karena konten portfolio memang ditujukan untuk publik.
+Dokumen ini menjelaskan API publik untuk website portfolio Next.js. API bersifat read-only, tidak memakai authentication, tidak memakai role/permission middleware, dan hanya menampilkan konten yang aktif/published.
 
 ## Ringkasan
 
 | Item | Nilai |
 | --- | --- |
 | Base URL lokal | `http://127.0.0.1:8000` |
+| Base URL production | `https://cms-portfolio.ryucode.site` |
 | Prefix API | `/api/v1` |
 | Format response | JSON |
 | Authentication | Tidak perlu |
 | Permission | Tidak perlu |
 | Write endpoint | Tidak tersedia |
 | Cache HTTP | `Cache-Control: public, max-age=300` |
-| Cache server | 15 menit, auto flush saat konten CMS berubah |
+| Cache server | 15 menit, invalidasi saat data CMS berubah |
 
 Middleware route API yang aktif hanya:
 
 - `throttle:60,1`
 - `SubstituteBindings`
 
-Tidak ada middleware berikut pada API portfolio:
+Tidak ada middleware berikut pada route API publik:
 
 - `auth`
 - `can`
@@ -28,413 +29,310 @@ Tidak ada middleware berikut pada API portfolio:
 - `permission`
 - middleware Spatie permission
 
-## Endpoint
+## Prinsip Desain API
 
-### Get Portfolio Content
+Endpoint tidak lagi dibuat sebagai satu payload besar untuk seluruh database portfolio. `/api/v1/portfolio` hanya dipakai sebagai bootstrap ringan untuk render awal. Data yang berpotensi besar seperti projects, notes, dan media assets dipisah ke endpoint list/detail dengan pagination dan filter.
 
-Mengambil seluruh data publik portfolio dalam satu response. Endpoint ini dibuat single payload agar frontend Next.js bisa melakukan satu kali fetch untuk membangun halaman portfolio.
+## Endpoint Summary
+
+| Method | Endpoint | Fungsi |
+| --- | --- | --- |
+| `GET` | `/api/v1/portfolio` | Bootstrap ringan homepage |
+| `GET` | `/api/v1/global` | Site settings, social links, tech stacks |
+| `GET` | `/api/v1/landing-page` | Konten lengkap landing page |
+| `GET` | `/api/v1/about-page` | Konten lengkap about page |
+| `GET` | `/api/v1/projects-page` | Hero project, kategori, featured projects |
+| `GET` | `/api/v1/project-categories` | List kategori project aktif |
+| `GET` | `/api/v1/projects` | List project published dengan pagination/filter |
+| `GET` | `/api/v1/projects/{slug}` | Detail project published |
+| `GET` | `/api/v1/notes-page` | Hero notes, kategori, featured notes |
+| `GET` | `/api/v1/notes-categories` | List kategori notes aktif |
+| `GET` | `/api/v1/notes` | List notes published dengan pagination/filter |
+| `GET` | `/api/v1/notes/{slug}` | Detail note published |
+| `GET` | `/api/v1/contact-information` | Informasi kontak publik |
+| `GET` | `/api/v1/media-assets` | Media assets aktif dengan pagination/filter |
+
+## Standard Response
+
+Endpoint non-paginated menggunakan envelope `data`.
+
+```json
+{
+  "data": {}
+}
+```
+
+Endpoint paginated menggunakan struktur berikut.
+
+```json
+{
+  "data": [],
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 3,
+    "per_page": 9,
+    "to": 9,
+    "total": 27
+  },
+  "links": {
+    "first": "http://localhost:8000/api/v1/projects?page=1",
+    "last": "http://localhost:8000/api/v1/projects?page=3",
+    "prev": null,
+    "next": "http://localhost:8000/api/v1/projects?page=2"
+  }
+}
+```
+
+Object yang belum diisi dari CMS bernilai `null`. Collection kosong bernilai `[]`.
+
+## Bootstrap
+
+### Get Bootstrap Portfolio Content
 
 ```http
 GET /api/v1/portfolio
 ```
 
-#### Headers
+Endpoint ini hanya untuk render awal. Payload sengaja ringan.
 
-Tidak ada header wajib.
+Response berisi:
+
+- `global`
+- `landing_page.hero`
+- `projects_page.hero`
+- `projects_page.featured_projects`, maksimal 6 data
+- `notes_page.hero`
+- `notes_page.featured_notes`, maksimal 6 data
+- `contact_page.information`
+
+Endpoint ini tidak memuat:
+
+- semua project
+- semua notes
+- detail project
+- detail notes
+- about sections lengkap
+- media library lengkap
+
+## Global
+
+### Get Global Content
 
 ```http
-Accept: application/json
+GET /api/v1/global
 ```
 
-#### Response 200
+Response berisi:
 
-```json
-{
-  "data": {
-    "global": {
-      "site_settings": {},
-      "social_media_links": [],
-      "tech_stacks": [],
-      "media_assets": []
-    },
-    "landing_page": {
-      "hero": {},
-      "about_sections": []
-    },
-    "about_page": {
-      "hero": {},
-      "sections": [],
-      "expertise_sections": [],
-      "tools": [],
-      "hobby_sections": []
-    },
-    "projects_page": {
-      "hero": {},
-      "categories": [],
-      "featured_projects": []
-    },
-    "notes_page": {
-      "hero": {},
-      "categories": [],
-      "featured_notes": []
-    },
-    "contact_page": {
-      "information": {}
-    }
-  }
-}
+- `site_settings`
+- `social_media_links`
+- `tech_stacks`
+
+Field media penting memiliki URL absolut, misalnya `logo_light_url`, `logo_dark_url`, `favicon_url`, dan `og_image_url`.
+
+## Landing Page
+
+### Get Landing Page
+
+```http
+GET /api/v1/landing-page
 ```
 
-Field object yang belum diisi dari CMS akan bernilai `null`. Collection yang kosong akan bernilai array kosong `[]`.
+Response berisi:
 
-## Struktur Data
-
-### `global.site_settings`
-
-Berisi konfigurasi global website.
-
-Field penting:
-
-- `site_title`
-- `logo_light`
-- `logo_light_url`
-- `logo_dark`
-- `logo_dark_url`
-- `favicon`
-- `favicon_url`
-- `copyright_text`
-- `meta_title`
-- `meta_description`
-- `og_image`
-- `og_image_url`
-- `created_at`
-- `updated_at`
-
-### `global.social_media_links`
-
-Berisi social media yang aktif, terurut berdasarkan `order_no`.
-
-Field penting:
-
-- `title`
-- `url`
-- `is_active`
-- `order_no`
-- `created_at`
-- `updated_at`
-
-### `global.tech_stacks`
-
-Berisi tech stack yang aktif, terurut berdasarkan `order_no`.
-
-Field penting:
-
-- `name`
-- `icon`
-- `icon_url`
-- `is_active`
-- `order_no`
-- `created_at`
-- `updated_at`
-
-### `global.media_assets`
-
-Berisi media library CMS yang aktif.
-
-Field penting:
-
-- `title`
-- `file_path`
-- `file_path_url`
-- `alt_text`
-- `disk`
-- `mime_type`
-- `file_size`
-- `formatted_size`
-- `width`
-- `height`
-- `is_active`
-- `created_at`
-- `updated_at`
-
-### `landing_page`
-
-Berisi konten landing page.
-
-Field penting:
-
-- `hero.title`
-- `hero.subtitle`
-- `hero.meta_title`
-- `hero.meta_description`
-- `hero.og_image_url`
-- `about_sections[].title`
-- `about_sections[].subtitle`
-- `about_sections[].order_no`
+- `hero`
+- `about_sections[]`
 - `about_sections[].items[]`
 
-Item pada `about_sections[].items[]`:
+## About Page
 
-- `title`
-- `subtitle`
-- `icon`
-- `icon_url`
-- `order_no`
+### Get About Page
 
-### `about_page`
+```http
+GET /api/v1/about-page
+```
 
-Berisi konten halaman About.
+Response berisi:
 
-Field penting:
-
-- `hero.title`
-- `hero.subtitle`
-- `hero.photo`
-- `hero.photo_url`
-- `hero.photo_alt`
-- `hero.meta_title`
-- `hero.meta_description`
-- `hero.og_image_url`
+- `hero`
 - `sections[]`
+- `sections[].items[]`
 - `expertise_sections[]`
 - `tools[]`
 - `hobby_sections[]`
+- `hobby_sections[].items[]`
 
-Item pada `sections[]`:
+## Projects
 
-- `title`
-- `subtitle_rich`
-- `order_no`
-- `items[]`
+### Get Projects Page Metadata
 
-Item pada `sections[].items[]`:
+```http
+GET /api/v1/projects-page
+```
 
-- `title`
-- `subtitle`
-- `icon`
-- `icon_url`
-- `order_no`
+Response berisi:
 
-Item pada `tools[]`:
-
-- `name`
-- `logo`
-- `logo_url`
-- `is_active`
-- `order_no`
-
-Item pada `hobby_sections[].items[]`:
-
-- `photo`
-- `photo_url`
-- `photo_alt`
-- `order_no`
-
-### `projects_page`
-
-Berisi hero, kategori project, project published, dan featured project.
-
-Field penting:
-
-- `hero.title`
-- `hero.subtitle`
-- `hero.meta_title`
-- `hero.meta_description`
-- `hero.og_image_url`
+- `hero`
 - `categories[]`
-- `featured_projects[]`
+- `featured_projects[]`, maksimal 6 data
 
-Kategori hanya berisi kategori aktif. Project hanya muncul jika:
+### Get Project Categories
+
+```http
+GET /api/v1/project-categories
+```
+
+Hanya kategori dengan `is_active = true` yang ditampilkan.
+
+### Get Projects List
+
+```http
+GET /api/v1/projects
+```
+
+Query parameter:
+
+| Parameter | Type | Default | Keterangan |
+| --- | --- | --- | --- |
+| `category` | string | null | Filter berdasarkan slug kategori |
+| `featured` | boolean | null | `true` hanya featured, `false` hanya non-featured |
+| `page` | integer | `1` | Halaman pagination |
+| `per_page` | integer | `9` | Jumlah data per halaman, maksimal `24` |
+
+Contoh:
+
+```http
+GET /api/v1/projects?category=web-apps&featured=true&page=1&per_page=9
+```
+
+List project berisi data ringkas untuk card/list dan tidak membawa `description_rich`, `core_features`, atau `design_highlights`.
+
+Project ditampilkan jika:
 
 - `is_active = true`
-- `published_at` sudah terisi dan tidak berada di masa depan
+- `published_at = null` atau `published_at <= now()`
 
-Item pada `categories[]`:
+### Get Project Detail
 
-- `title`
-- `slug`
-- `is_active`
-- `order_no`
-- `projects[]`
+```http
+GET /api/v1/projects/{slug}
+```
 
-Item project:
+Contoh:
 
-- `project_category_id`
-- `title`
-- `subtitle`
-- `slug`
-- `description_rich`
-- `thumbnail`
-- `thumbnail_url`
-- `thumbnail_alt`
-- `is_active`
-- `is_featured`
-- `published_at`
-- `github_url`
-- `live_url`
-- `meta_title`
-- `meta_description`
-- `og_image`
-- `og_image_url`
+```http
+GET /api/v1/projects/portfolio-cms
+```
+
+Detail project memuat:
+
+- field project lengkap
 - `category`
 - `tech_stacks[]`
 - `core_features[]`
 - `design_highlights[]`
 
-Item pada `core_features[]`:
+Jika slug tidak ditemukan atau project belum published, response `404`.
 
-- `description`
-- `order_no`
+## Notes
 
-Item pada `design_highlights[]`:
+### Get Notes Page Metadata
 
-- `title`
-- `subtitle`
-- `photo`
-- `photo_url`
-- `photo_alt`
-- `order_no`
+```http
+GET /api/v1/notes-page
+```
 
-### `notes_page`
+Response berisi:
 
-Berisi hero, kategori notes, notes published, dan featured notes.
-
-Field penting:
-
-- `hero.title`
-- `hero.subtitle`
-- `hero.meta_title`
-- `hero.meta_description`
-- `hero.og_image_url`
+- `hero`
 - `categories[]`
-- `featured_notes[]`
+- `featured_notes[]`, maksimal 6 data
 
-Notes hanya muncul jika:
+### Get Notes Categories
+
+```http
+GET /api/v1/notes-categories
+```
+
+Hanya kategori dengan `is_active = true` yang ditampilkan.
+
+### Get Notes List
+
+```http
+GET /api/v1/notes
+```
+
+Query parameter:
+
+| Parameter | Type | Default | Keterangan |
+| --- | --- | --- | --- |
+| `category` | string | null | Filter berdasarkan slug kategori |
+| `featured` | boolean | null | `true` hanya featured, `false` hanya non-featured |
+| `page` | integer | `1` | Halaman pagination |
+| `per_page` | integer | `10` | Jumlah data per halaman, maksimal `24` |
+
+Contoh:
+
+```http
+GET /api/v1/notes?category=laravel&page=1&per_page=10
+```
+
+Notes ditampilkan jika:
 
 - `is_active = true`
-- `published_at` sudah terisi dan tidak berada di masa depan
+- `published_at = null` atau `published_at <= now()`
 
-Item pada `categories[]`:
+### Get Note Detail
 
-- `title`
-- `slug`
-- `is_active`
-- `order_no`
-- `notes[]`
+```http
+GET /api/v1/notes/{slug}
+```
 
-Item note:
+Jika slug tidak ditemukan atau note belum published, response `404`.
 
-- `notes_category_id`
-- `title`
-- `subtitle`
-- `slug`
-- `is_active`
-- `is_featured`
-- `published_at`
-- `meta_title`
-- `meta_description`
-- `og_image`
-- `og_image_url`
-- `category`
-- `created_at`
-- `updated_at`
+## Contact
 
-### `contact_page.information`
+### Get Contact Information
 
-Berisi informasi kontak publik.
+```http
+GET /api/v1/contact-information
+```
 
-Field penting:
+Response berisi:
 
 - `location`
 - `image`
 - `image_url`
 - `image_alt`
 - `email`
-- `meta_title`
-- `meta_description`
-- `og_image`
-- `og_image_url`
-- `created_at`
-- `updated_at`
+- SEO fields
 
-Catatan: `contact_messages` tidak diekspos di API publik karena tabel tersebut menyimpan submission/contact inbox admin.
+`contact_messages` tidak diekspos karena itu inbox/submission admin.
 
-## Contoh Integrasi Next.js
+## Media Assets
 
-### Server Component atau Route Handler
+### Get Media Assets
 
-Gunakan environment variable server-side agar URL CMS tidak perlu dibundle ke client.
-
-```ts
-type PortfolioContentResponse = {
-  data: Record<string, unknown>;
-};
-
-export async function getPortfolioContent() {
-  const baseUrl = process.env.CMS_API_URL;
-
-  if (!baseUrl) {
-    throw new Error('CMS_API_URL is not configured');
-  }
-
-  const response = await fetch(`${baseUrl}/api/v1/portfolio`, {
-    headers: {
-      Accept: 'application/json',
-    },
-    next: {
-      revalidate: 300,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch portfolio content: ${response.status}`);
-  }
-
-  const payload = (await response.json()) as PortfolioContentResponse;
-
-  return payload.data;
-}
+```http
+GET /api/v1/media-assets
 ```
 
-Contoh `.env.local` Next.js:
+Query parameter:
 
-```env
-CMS_API_URL=https://cms.example.com
+| Parameter | Type | Default | Keterangan |
+| --- | --- | --- | --- |
+| `collection` | string | null | Filter berdasarkan collection media |
+| `page` | integer | `1` | Halaman pagination |
+| `per_page` | integer | `24` | Jumlah data per halaman, maksimal `48` |
+
+Contoh:
+
+```http
+GET /api/v1/media-assets?collection=seo&page=1&per_page=24
 ```
 
-### Client-side Fetch
-
-Jika fetch dilakukan langsung dari browser, gunakan public environment variable dan pastikan CORS Laravel mengizinkan domain frontend.
-
-```env
-NEXT_PUBLIC_CMS_API_URL=https://cms.example.com
-```
-
-```ts
-export async function getPortfolioContentFromBrowser() {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_CMS_API_URL}/api/v1/portfolio`, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch portfolio content');
-  }
-
-  return (await response.json()).data;
-}
-```
-
-## Error Response
-
-| Status | Penyebab |
-| --- | --- |
-| `200` | Data berhasil diambil |
-| `404` | Endpoint tidak ditemukan |
-| `405` | Method selain `GET` atau `HEAD` digunakan |
-| `429` | Terkena rate limit `60 request / menit` |
-| `500` | Error server |
+Hanya media asset dengan `is_active = true` yang ditampilkan.
 
 ## Media URL
 
@@ -444,23 +342,98 @@ Setiap field media penting memiliki pasangan URL absolut dengan suffix `_url`, m
 - `thumbnail` dan `thumbnail_url`
 - `photo` dan `photo_url`
 - `og_image` dan `og_image_url`
+- `file_path` dan `file_path_url`
 
-Pastikan production sudah menjalankan:
+Production harus menjalankan:
 
 ```bash
 php artisan storage:link
 ```
 
-Pastikan juga `APP_URL` pada Laravel mengarah ke domain CMS yang benar agar URL media yang dihasilkan sesuai.
+Pastikan `APP_URL` dan `ASSET_URL` mengarah ke domain HTTPS production.
+
+## Contoh Integrasi Next.js
+
+Gunakan server-side fetch untuk data CMS.
+
+```ts
+type ApiResponse<T> = {
+  data: T;
+};
+
+async function cmsFetch<T>(path: string): Promise<T> {
+  const baseUrl = process.env.CMS_API_URL;
+
+  if (!baseUrl) {
+    throw new Error('CMS_API_URL is not configured');
+  }
+
+  const response = await fetch(`${baseUrl}${path}`, {
+    headers: {
+      Accept: 'application/json',
+    },
+    next: {
+      revalidate: 300,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`CMS request failed: ${response.status}`);
+  }
+
+  const payload = (await response.json()) as ApiResponse<T>;
+
+  return payload.data;
+}
+
+export function getBootstrap() {
+  return cmsFetch('/api/v1/portfolio');
+}
+
+export function getProjects(page = 1) {
+  return fetch(`${process.env.CMS_API_URL}/api/v1/projects?page=${page}`, {
+    headers: {
+      Accept: 'application/json',
+    },
+    next: {
+      revalidate: 300,
+    },
+  }).then((response) => response.json());
+}
+
+export function getProject(slug: string) {
+  return cmsFetch(`/api/v1/projects/${slug}`);
+}
+```
+
+Contoh `.env.local` Next.js:
+
+```env
+CMS_API_URL=https://cms-portfolio.ryucode.site
+```
+
+Jika fetch dilakukan dari browser, gunakan `NEXT_PUBLIC_CMS_API_URL` dan pastikan CORS Laravel hanya membuka domain frontend.
+
+## Error Response
+
+| Status | Penyebab |
+| --- | --- |
+| `200` | Data berhasil diambil |
+| `404` | Endpoint tidak ditemukan, slug tidak ditemukan, atau konten belum published |
+| `405` | Method selain `GET` atau `HEAD` digunakan |
+| `422` | Query parameter tidak valid |
+| `429` | Terkena rate limit `60 request / menit` |
+| `500` | Error server |
 
 ## Production Checklist
 
-- `GET /api/v1/portfolio` tetap public dan tidak diberi middleware `auth`, `can`, `role`, atau `permission`.
-- `POST`, `PUT`, `PATCH`, dan `DELETE` untuk `/api/v1/portfolio` tetap tidak tersedia.
-- `APP_URL` sudah sesuai domain production CMS.
+- Semua endpoint `/api/v1/*` tetap public dan tidak diberi middleware `auth`, `can`, `role`, atau `permission`.
+- Method write seperti `POST`, `PUT`, `PATCH`, dan `DELETE` tetap tidak tersedia untuk API publik.
+- `APP_URL` sudah memakai domain HTTPS production.
+- `ASSET_URL` sudah memakai domain HTTPS production jika deploy di balik proxy seperti Heroku.
 - `php artisan storage:link` sudah dijalankan.
 - CORS hanya dibuka untuk domain frontend portfolio jika fetch dilakukan dari browser.
-- Data yang belum siap publish tetap `is_active = false` atau `published_at = null`.
+- Data yang belum siap publish tetap `is_active = false` atau `published_at` dibuat di masa depan.
 - Contact message/inbox admin tidak diekspos lewat API publik.
 
 ## Verifikasi Developer
@@ -471,15 +444,7 @@ Command untuk mengecek route API:
 php artisan route:list --path=api -vv --no-interaction
 ```
 
-Expected middleware untuk endpoint portfolio:
-
-```text
-GET|HEAD api/v1/portfolio
-Illuminate\Routing\Middleware\ThrottleRequests:60,1
-Illuminate\Routing\Middleware\SubstituteBindings
-```
-
-Command test yang menjaga API tetap public read-only:
+Command test API:
 
 ```bash
 php artisan test --compact tests/Feature/PortfolioApiTest.php
