@@ -20,7 +20,7 @@ class CmsMediaAssetFactory extends Factory
         return [
             'title' => fake()->words(2, true),
             'collection' => 'general',
-            'disk' => 'public',
+            'disk' => 'r2',
             'file_path' => 'media-library/general/'.fake()->uuid().'.jpg',
             'file_name' => fake()->uuid().'.jpg',
             'mime_type' => 'image/jpeg',

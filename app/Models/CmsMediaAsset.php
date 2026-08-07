@@ -18,7 +18,7 @@ class CmsMediaAsset extends Model
 
     protected $attributes = [
         'collection' => 'general',
-        'disk' => 'public',
+        'disk' => 'r2',
         'is_active' => true,
     ];
 
@@ -31,6 +31,10 @@ class CmsMediaAsset extends Model
     protected static function booted(): void
     {
         static::saving(function (CmsMediaAsset $asset): void {
+            if (blank($asset->disk) || $asset->disk === 'public') {
+                $asset->disk = (string) config('filesystems.media_disk', 'r2');
+            }
+
             $asset->syncFileMetadata();
         });
     }

@@ -22,7 +22,7 @@ class CmsMediaAssetsTable
             ->columns([
                 ImageColumn::make('file_path')
                     ->label('Preview')
-                    ->disk('public')
+                    ->disk(config('filesystems.media_disk', 'r2'))
                     ->square(),
                 TextColumn::make('title')
                     ->searchable()

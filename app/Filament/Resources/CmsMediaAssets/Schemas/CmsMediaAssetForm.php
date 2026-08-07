@@ -37,7 +37,7 @@ class CmsMediaAssetForm
                 FileUpload::make('file_path')
                     ->label('File')
                     ->required()
-                    ->disk('public')
+                    ->disk(config('filesystems.media_disk', 'r2'))
                     ->directory(fn (Get $get): string => 'media-library/'.Str::slug($get('collection') ?: 'general'))
                     ->acceptedFileTypes([
                         'image/jpeg',

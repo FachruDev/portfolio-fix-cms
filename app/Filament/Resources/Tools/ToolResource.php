@@ -36,7 +36,7 @@ class ToolResource extends Resource
     {
         return $schema->columns(2)->components([
             TextInput::make('name')->required()->maxLength(255),
-            FileUpload::make('logo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('tools'),
+            FileUpload::make('logo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('tools'),
             TextInput::make('logo_alt')->maxLength(255),
             TextInput::make('order_no')->numeric()->default(0)->required(),
             Toggle::make('is_active')->default(true)->required(),
@@ -46,7 +46,7 @@ class ToolResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            ImageColumn::make('logo')->disk('public'),
+            ImageColumn::make('logo')->disk(config('filesystems.media_disk', 'r2')),
             TextColumn::make('name')->searchable()->sortable(),
             TextColumn::make('order_no')->sortable(),
             IconColumn::make('is_active')->boolean()->sortable(),

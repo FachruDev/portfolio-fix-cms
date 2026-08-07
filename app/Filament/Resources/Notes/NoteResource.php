@@ -44,7 +44,7 @@ class NoteResource extends Resource
             TextInput::make('slug')->required()->maxLength(255)->unique(ignoreRecord: true),
             TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
             Textarea::make('meta_description')->rows(3)->columnSpanFull(),
-            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('seo'),
             Toggle::make('is_active')->default(true)->required(),
             Toggle::make('is_featured')->default(false)->required(),
             DateTimePicker::make('published_at')->seconds(false),

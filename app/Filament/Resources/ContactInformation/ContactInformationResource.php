@@ -36,18 +36,18 @@ class ContactInformationResource extends Resource
         return $schema->columns(2)->components([
             TextInput::make('location')->maxLength(255),
             TextInput::make('email')->email()->maxLength(255),
-            FileUpload::make('image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('contact'),
+            FileUpload::make('image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('contact'),
             TextInput::make('image_alt')->maxLength(255),
             TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
             Textarea::make('meta_description')->rows(3)->columnSpanFull(),
-            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('seo'),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            ImageColumn::make('image')->disk('public'),
+            ImageColumn::make('image')->disk(config('filesystems.media_disk', 'r2')),
             TextColumn::make('location')->searchable()->sortable(),
             TextColumn::make('email')->searchable()->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),

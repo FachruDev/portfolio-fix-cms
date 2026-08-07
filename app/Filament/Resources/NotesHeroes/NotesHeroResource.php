@@ -37,7 +37,7 @@ class NotesHeroResource extends Resource
             Textarea::make('subtitle')->rows(3)->columnSpanFull(),
             TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
             Textarea::make('meta_description')->rows(3)->columnSpanFull(),
-            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('seo'),
         ]);
     }
 

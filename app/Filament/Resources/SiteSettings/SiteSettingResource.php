@@ -34,15 +34,15 @@ class SiteSettingResource extends Resource
     {
         return $schema->columns(2)->components([
             TextInput::make('site_title')->required()->maxLength(255),
-            FileUpload::make('logo_light')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('site-settings'),
+            FileUpload::make('logo_light')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('site-settings'),
             TextInput::make('logo_light_alt')->maxLength(255),
-            FileUpload::make('logo_dark')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('site-settings'),
+            FileUpload::make('logo_dark')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('site-settings'),
             TextInput::make('logo_dark_alt')->maxLength(255),
-            FileUpload::make('favicon')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('site-settings'),
+            FileUpload::make('favicon')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('site-settings'),
             TextInput::make('copyright_text')->maxLength(255),
             TextInput::make('meta_title')->maxLength(255)->columnSpanFull(),
             Textarea::make('meta_description')->rows(3)->columnSpanFull(),
-            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('seo'),
+            FileUpload::make('og_image')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('seo'),
         ]);
     }
 

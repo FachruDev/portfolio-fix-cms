@@ -36,7 +36,7 @@ class DesignHighlightsRelationManager extends RelationManager
                     ->image()
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])
                     ->maxSize(2048)
-                    ->disk('public')
+                    ->disk(config('filesystems.media_disk', 'r2'))
                     ->directory('projects/design-highlights'),
                 TextInput::make('photo_alt')
                     ->maxLength(255),
@@ -52,7 +52,7 @@ class DesignHighlightsRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->columns([
                 ImageColumn::make('photo')
-                    ->disk('public'),
+                    ->disk(config('filesystems.media_disk', 'r2')),
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable(),

@@ -34,7 +34,7 @@ class HobbyItemResource extends Resource
     {
         return $schema->columns(2)->components([
             Select::make('hobby_section_id')->relationship('section', 'title')->searchable()->preload()->required(),
-            FileUpload::make('photo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk('public')->directory('hobbies')->required(),
+            FileUpload::make('photo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])->maxSize(2048)->disk(config('filesystems.media_disk', 'r2'))->directory('hobbies')->required(),
             TextInput::make('photo_alt')->maxLength(255),
             TextInput::make('order_no')->numeric()->default(0)->required(),
         ]);
@@ -43,7 +43,7 @@ class HobbyItemResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            ImageColumn::make('photo')->disk('public'),
+            ImageColumn::make('photo')->disk(config('filesystems.media_disk', 'r2')),
             TextColumn::make('section.title')->searchable()->sortable(),
             TextColumn::make('order_no')->sortable(),
             TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),

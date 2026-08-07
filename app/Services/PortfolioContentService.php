@@ -474,7 +474,12 @@ class PortfolioContentService
 
     private function mediaUrl(?string $path): ?string
     {
-        return filled($path) ? Storage::disk('public')->url($path) : null;
+        return filled($path) ? Storage::disk($this->mediaDisk())->url($path) : null;
+    }
+
+    private function mediaDisk(): string
+    {
+        return (string) config('filesystems.media_disk', 'r2');
     }
 
     /**

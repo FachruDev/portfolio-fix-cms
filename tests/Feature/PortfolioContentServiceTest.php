@@ -16,6 +16,16 @@ class PortfolioContentServiceTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'filesystems.media_disk' => 'r2',
+            'filesystems.disks.r2.url' => 'https://r2.example.test',
+        ]);
+    }
+
     public function test_service_returns_published_eager_loaded_portfolio_content(): void
     {
         SiteSetting::create([
@@ -61,9 +71,9 @@ class PortfolioContentServiceTest extends TestCase
         $content = app(PortfolioContentService::class)->project($publishedProject->slug);
 
         $this->assertSame('Published Project', $content['title']);
-        $this->assertSame('http://localhost:8000/storage/projects/thumbnails/published-project.jpg', $content['thumbnail_url']);
+        $this->assertSame('https://r2.example.test/projects/thumbnails/published-project.jpg', $content['thumbnail_url']);
         $this->assertSame('Laravel', $content['tech_stacks'][0]['name']);
-        $this->assertSame('http://localhost:8000/storage/tech/laravel.svg', $content['tech_stacks'][0]['icon_url']);
+        $this->assertSame('https://r2.example.test/tech/laravel.svg', $content['tech_stacks'][0]['icon_url']);
     }
 
     public function test_cms_model_changes_flush_cached_portfolio_content(): void
@@ -98,6 +108,6 @@ class PortfolioContentServiceTest extends TestCase
 
         $this->assertCount(1, $content['data']);
         $this->assertSame('Open Graph Image', $content['data'][0]['title']);
-        $this->assertSame('http://localhost:8000/storage/media-library/seo/og-image.jpg', $content['data'][0]['file_path_url']);
+        $this->assertSame('https://r2.example.test/media-library/seo/og-image.jpg', $content['data'][0]['file_path_url']);
     }
 }

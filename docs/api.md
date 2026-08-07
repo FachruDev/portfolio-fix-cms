@@ -344,13 +344,23 @@ Setiap field media penting memiliki pasangan URL absolut dengan suffix `_url`, m
 - `og_image` dan `og_image_url`
 - `file_path` dan `file_path_url`
 
-Production harus menjalankan:
+Media URL dihasilkan dari disk media Laravel. Untuk production project ini disk media harus mengarah ke Cloudflare R2, bukan storage local.
 
-```bash
-php artisan storage:link
+Konfigurasi minimum production:
+
+```env
+FILESYSTEM_DISK=r2
+MEDIA_DISK=r2
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_DEFAULT_REGION=auto
+R2_BUCKET=...
+R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+R2_URL=https://<public-r2-domain>
+R2_USE_PATH_STYLE_ENDPOINT=true
 ```
 
-Pastikan `APP_URL` dan `ASSET_URL` mengarah ke domain HTTPS production.
+Gunakan `R2_URL` untuk domain publik media. Jika memakai custom domain Cloudflare, isi `R2_URL` dengan custom domain HTTPS tersebut.
 
 ## Contoh Integrasi Next.js
 
@@ -431,7 +441,9 @@ Jika fetch dilakukan dari browser, gunakan `NEXT_PUBLIC_CMS_API_URL` dan pastika
 - Method write seperti `POST`, `PUT`, `PATCH`, dan `DELETE` tetap tidak tersedia untuk API publik.
 - `APP_URL` sudah memakai domain HTTPS production.
 - `ASSET_URL` sudah memakai domain HTTPS production jika deploy di balik proxy seperti Heroku.
-- `php artisan storage:link` sudah dijalankan.
+- `FILESYSTEM_DISK` dan `MEDIA_DISK` sudah memakai `r2`.
+- `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, dan `R2_SECRET_ACCESS_KEY` sudah sesuai konfigurasi bucket.
+- `R2_URL` sudah memakai domain HTTPS publik agar field media `_url` bisa langsung dipakai frontend.
 - CORS hanya dibuka untuk domain frontend portfolio jika fetch dilakukan dari browser.
 - Data yang belum siap publish tetap `is_active = false` atau `published_at` dibuat di masa depan.
 - Contact message/inbox admin tidak diekspos lewat API publik.

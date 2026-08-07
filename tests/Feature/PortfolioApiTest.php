@@ -18,6 +18,16 @@ class PortfolioApiTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'filesystems.media_disk' => 'r2',
+            'filesystems.disks.r2.url' => 'https://r2.example.test',
+        ]);
+    }
+
     public function test_portfolio_endpoint_returns_lightweight_bootstrap_payload(): void
     {
         SiteSetting::create([
@@ -45,7 +55,7 @@ class PortfolioApiTest extends TestCase
             ->assertOk()
             ->assertHeader('cache-control')
             ->assertJsonPath('data.global.site_settings.site_title', 'Portfolio CMS')
-            ->assertJsonPath('data.global.site_settings.logo_light_url', 'http://localhost:8000/storage/logos/light.svg')
+            ->assertJsonPath('data.global.site_settings.logo_light_url', 'https://r2.example.test/logos/light.svg')
             ->assertJsonPath('data.projects_page.featured_projects.0.title', 'Featured API')
             ->assertJsonMissingPath('data.projects_page.categories')
             ->assertJsonMissingPath('data.about_page.sections');
@@ -105,7 +115,7 @@ class PortfolioApiTest extends TestCase
             ->assertJsonPath('data.0.title', 'Portfolio API')
             ->assertJsonPath('data.0.category.slug', 'web-apps')
             ->assertJsonPath('data.0.tech_stacks.0.name', 'Laravel')
-            ->assertJsonPath('data.0.thumbnail_url', 'http://localhost:8000/storage/projects/thumbnails/api.jpg')
+            ->assertJsonPath('data.0.thumbnail_url', 'https://r2.example.test/projects/thumbnails/api.jpg')
             ->assertJsonPath('meta.per_page', 1)
             ->assertJsonPath('meta.total', 1)
             ->assertJsonMissingPath('data.0.description_rich')
@@ -149,7 +159,7 @@ class PortfolioApiTest extends TestCase
             ->assertJsonPath('data.title', 'Portfolio API')
             ->assertJsonPath('data.description_rich', '<p>Long detail.</p>')
             ->assertJsonPath('data.core_features.0.description', 'Public read-only API.')
-            ->assertJsonPath('data.design_highlights.0.photo_url', 'http://localhost:8000/storage/projects/highlights/dashboard.jpg');
+            ->assertJsonPath('data.design_highlights.0.photo_url', 'https://r2.example.test/projects/highlights/dashboard.jpg');
 
         $project->update(['is_active' => false]);
 

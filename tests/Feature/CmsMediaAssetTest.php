@@ -16,8 +16,15 @@ class CmsMediaAssetTest extends TestCase
 
     public function test_media_asset_stores_public_url_and_file_metadata(): void
     {
-        Storage::fake('public');
-        Storage::disk('public')->put('media-library/general/sample.txt', 'sample media file');
+        config([
+            'filesystems.media_disk' => 'r2',
+            'filesystems.disks.r2.url' => 'https://r2.example.test',
+        ]);
+
+        Storage::fake('r2', [
+            'url' => 'https://r2.example.test',
+        ]);
+        Storage::disk('r2')->put('media-library/general/sample.txt', 'sample media file');
 
         $asset = CmsMediaAsset::create([
             'title' => 'Sample File',
@@ -26,7 +33,8 @@ class CmsMediaAssetTest extends TestCase
             'alt_text' => 'Sample file',
         ]);
 
-        $this->assertSame('/storage/media-library/general/sample.txt', $asset->public_url);
+        $this->assertSame('r2', $asset->disk);
+        $this->assertSame('https://r2.example.test/media-library/general/sample.txt', $asset->public_url);
         $this->assertSame('sample.txt', $asset->file_name);
         $this->assertSame(17, $asset->size);
         $this->assertTrue($asset->is_active);
